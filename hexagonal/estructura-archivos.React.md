@@ -1,4 +1,4 @@
-Claro, aquí tienes un ejemplo de cómo podría ser la estructura de archivos de un proyecto React utilizando la arquitectura hexagonal:
+Ejemplo de cómo podría ser la estructura de archivos de un proyecto React utilizando la arquitectura hexagonal:
 
 ```
 src/

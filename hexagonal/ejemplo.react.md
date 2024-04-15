@@ -1,34 +1,30 @@
-Aquí tienes un ejemplo detallado de cómo podrías implementar la arquitectura hexagonal en una aplicación web de comercio electrónico utilizando React:
+Claro, aquí tienes una versión actualizada del ejemplo que incluye puertos y adaptadores:
 
 ### 1. Capa de Dominio:
-En esta capa, definimos las reglas de negocio y los modelos de dominio.
+En esta capa, definimos los puertos que serán implementados por los adaptadores en la capa de infraestructura.
 
 ```jsx
-// domain/models/Product.js
-class Product {
-  constructor(id, name, price) {
-    this.id = id;
-    this.name = name;
-    this.price = price;
+// domain/ports/ProductRepositoryPort.js
+class ProductRepositoryPort {
+  getAllProducts() {
+    throw new Error('Method not implemented');
   }
 }
 
-export default Product;
+export default ProductRepositoryPort;
 ```
 
 ### 2. Capa de Aplicación:
-Esta capa coordina las acciones del sistema y actúa como un puente entre la capa de dominio y las interfaces externas.
+Esta capa contiene los casos de uso y depende de los puertos definidos en el dominio.
 
 ```jsx
 // application/ProductService.js
-import ProductRepository from '../infrastructure/ProductRepository';
-
 class ProductService {
-  constructor() {
-    this.productRepository = new ProductRepository();
+  constructor(productRepository) {
+    this.productRepository = productRepository;
   }
 
-  getAllProducts() {
+  async getAllProducts() {
     return this.productRepository.getAllProducts();
   }
 }
@@ -37,33 +33,37 @@ export default ProductService;
 ```
 
 ### 3. Capa de Infraestructura:
-Esta capa contiene implementaciones concretas de los puertos definidos en el dominio.
+Aquí es donde implementamos los puertos definidos en la capa de dominio utilizando adaptadores concretos.
 
 ```jsx
-// infrastructure/ProductRepository.js
-class ProductRepository {
-  getAllProducts() {
+// infrastructure/adapters/ProductRepositoryAdapter.js
+import ProductRepositoryPort from '../../domain/ports/ProductRepositoryPort';
+
+class ProductRepositoryAdapter extends ProductRepositoryPort {
+  async getAllProducts() {
     // Aquí iría la lógica para obtener los productos de una base de datos o API externa
     return Promise.resolve([
-      new Product(1, 'Camisa', 20),
-      new Product(2, 'Pantalón', 30),
-      new Product(3, 'Zapatos', 50),
+      { id: 1, name: 'Camisa', price: 20 },
+      { id: 2, name: 'Pantalón', price: 30 },
+      { id: 3, name: 'Zapatos', price: 50 },
     ]);
   }
 }
 
-export default ProductRepository;
+export default ProductRepositoryAdapter;
 ```
 
 ### Componentes React:
-En la capa de presentación, utilizamos los servicios de la capa de aplicación para interactuar con la lógica del negocio.
+En la capa de presentación, utilizamos los servicios de la capa de aplicación a través de los puertos definidos en la capa de dominio.
 
 ```jsx
 // components/ProductList.js
 import React, { useEffect, useState } from 'react';
 import ProductService from '../application/ProductService';
+import ProductRepositoryAdapter from '../infrastructure/adapters/ProductRepositoryAdapter';
 
-const productService = new ProductService();
+const productRepository = new ProductRepositoryAdapter();
+const productService = new ProductService(productRepository);
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -89,9 +89,4 @@ const ProductList = () => {
 export default ProductList;
 ```
 
-### Beneficios de la Arquitectura Hexagonal:
-- **Separación de preocupaciones**: La lógica del negocio está separada de las tecnologías externas, lo que facilita las pruebas unitarias y el mantenimiento.
-- **Flexibilidad**: Podemos cambiar fácilmente la implementación de los adaptadores (por ejemplo, cambiar la base de datos) sin afectar la lógica del negocio.
-- **Reutilización de código**: Los servicios de aplicación pueden ser utilizados por múltiples componentes de interfaz de usuario sin modificar la lógica subyacente.
-
-Con esta estructura, tu aplicación de React sigue los principios de la arquitectura hexagonal, lo que la hace más modular, flexible y fácil de mantener a medida que crece y evoluciona.
+Con esta estructura, los puertos definidos en la capa de dominio actúan como contratos que deben ser implementados por los adaptadores en la capa de infraestructura. Esto permite la separación efectiva de las preocupaciones y facilita la prueba y el cambio de implementaciones sin afectar otras partes del sistema.

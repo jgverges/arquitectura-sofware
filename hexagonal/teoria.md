@@ -1,6 +1,14 @@
 ## Links
 
+## Valentica Cupac
+
 https://www.youtube.com/@valentinacupac/search?query=hexagonal
+
+Graphics:
+
+1: https://miro.com/app/board/uXjVMcx1pU4=/
+
+2- https://miro.com/app/board/uXjVMcx1pU4=/?moveToWidget=3458764556642323184&cot=14
 
 ### juan manuel garrido de la paz 
 

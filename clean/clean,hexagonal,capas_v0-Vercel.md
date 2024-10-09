@@ -206,3 +206,163 @@ la implementación del repositorio de MongoDB a PostgreSQL sin afectar el resto 
 Recuerda que estos son principios y patrones, no reglas estrictas. Debes adaptarlos según las necesidades 
 específicas de tu proyecto. Lo importante es mantener una separación clara de responsabilidades
 y dependencias bien definidas.
+
+****
+## En que momento se instaciarían cada clase en un ejemplo de proyecto web con react
+
+
+
+
+Vamos a explicar en qué momento se instanciarían las clases en un proyecto web con React, siguiendo los principios de Clean Architecture y la construcción en capas. Primero, revisemos la estructura general de la aplicación:
+
+![image](https://github.com/user-attachments/assets/494eed59-255b-4773-9fd9-1973ed2f9431)
+
+
+Ahora, veamos cómo se instancian las clases en cada capa:
+
+1. Capa de Infraestructura
+
+
+Las clases de la capa de infraestructura, como los repositorios concretos, se instancian al inicio de la aplicación en un contenedor de inversión de control (IoC).
+
+```typescriptreact
+// src/config/ioc.ts
+import { Container } from 'inversify';
+import { IUserRepository } from '../domain/repositories/IUserRepository';
+import { UserRepositoryMongo } from '../infrastructure/repositories/UserRepositoryMongo';
+
+const container = new Container();
+
+container.bind<IUserRepository>('UserRepository').to(UserRepositoryMongo);
+
+export { container };
+```
+
+2. Capa de Dominio
+
+
+Las entidades del dominio se definen en esta capa, pero se instancian generalmente dentro de los casos de uso o en los repositorios.
+
+```typescriptreact
+// src/domain/entities/User.ts
+export class User {
+  constructor(
+    public id: string,
+    public name: string,
+    public email: string
+  ) {}
+
+  validateEmail(): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email);
+  }
+}
+
+// src/domain/repositories/IUserRepository.ts
+import { User } from '../entities/User';
+
+export interface IUserRepository {
+  getById(id: string): Promise<User | null>;
+  save(user: User): Promise<void>;
+}
+```
+
+3. Capa de Aplicación
+
+
+Los casos de uso se definen en esta capa y se instancian típicamente cuando se necesitan, a menudo en los hooks personalizados.
+
+```typescriptreact
+// src/application/usecases/CreateUserUseCase.ts
+import { User } from '../../domain/entities/User';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
+
+export class CreateUserUseCase {
+  constructor(private userRepository: IUserRepository) {}
+
+  async execute(id: string, name: string, email: string): Promise<User> {
+    const user = new User(id, name, email);  // Instanciación de la entidad User
+    
+    if (!user.validateEmail()) {
+      throw new Error('Invalid email');
+    }
+
+    await this.userRepository.save(user);
+    return user;
+  }
+}
+```
+
+4. Capa de Presentación
+
+
+En React, los componentes de la capa de presentación se instancian cuando se renderizan en el árbol de componentes. Los hooks personalizados se utilizan para conectar los componentes con los casos de uso.
+
+```typescriptreact
+// src/presentation/hooks/useCreateUser.ts
+import { useCallback } from 'react';
+import { container } from '../../config/ioc';
+import { CreateUserUseCase } from '../../application/usecases/CreateUserUseCase';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
+
+export const useCreateUser = () => {
+  const createUser = useCallback(async (id: string, name: string, email: string) => {
+    const userRepository = container.get<IUserRepository>('UserRepository');
+    const createUserUseCase = new CreateUserUseCase(userRepository);
+    return await createUserUseCase.execute(id, name, email);
+  }, []);
+
+  return { createUser };
+};
+
+// src/presentation/components/CreateUserForm.tsx
+import React, { useState } from 'react';
+import { useCreateUser } from '../hooks/useCreateUser';
+
+export const CreateUserForm: React.FC = () => {
+  const [id, setId] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const { createUser } = useCreateUser();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createUser(id, name, email);
+      // Manejar éxito
+    } catch (error) {
+      // Manejar error
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="text" value={id} onChange={e => setId(e.target.value)} placeholder="ID" />
+      <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Name" />
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
+      <button type="submit">Create User</button>
+    </form>
+  );
+};
+```
+
+Ahora, veamos un diagrama de secuencia que muestra el flujo de instanciación y uso de estas clases:
+
+![image](https://github.com/user-attachments/assets/d0e27819-1b1b-4a9f-adf1-9a7a08884814)
+
+Este diagrama muestra cómo las diferentes partes de la aplicación interactúan entre sí, desde la inicialización de la aplicación hasta la creación de un nuevo usuario.
+
+Para clarificar aún más, aquí tienes un diagrama que muestra las responsabilidades de cada capa:
+
+![image](https://github.com/user-attachments/assets/a21f94cd-b13e-43a4-87e3-275f88afd0dd)
+
+
+
+En resumen:
+
+1. Las clases de infraestructura (como los repositorios) se instancian al inicio de la aplicación en el contenedor IoC.
+2. Los casos de uso se instancian cuando se necesitan, generalmente en hooks personalizados.
+3. Las entidades del dominio se instancian dentro de los casos de uso o en los repositorios.
+4. Los componentes de React y los hooks personalizados se instancian cuando se renderizan o se utilizan en la aplicación.
+
+
+Este enfoque permite una separación clara de responsabilidades y facilita la prueba y el mantenimiento de cada parte de la aplicación de forma independiente. Además, proporciona una estructura escalable y flexible para tu aplicación React, permitiéndote cambiar fácilmente implementaciones (por ejemplo, cambiar de MongoDB a PostgreSQL) sin afectar la lógica de negocio central.

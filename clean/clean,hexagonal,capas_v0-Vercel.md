@@ -83,25 +83,112 @@ Explicación de las capas:
 
 
 Ahora, veamos cómo estos conceptos se relacionan y cómo podrías implementarlos en un proyecto real:
+```ts
+// Capa de Dominio: Entidad User
+export class User {
+  constructor(
+    public id: string,
+    public name: string,
+    public email: string
+  ) {}
 
-```typescriptreact project="CleanArchExample" file="domain/entities/User.ts"
-...
-```
+  validateEmail(): boolean {
+    // Lógica de validación de email
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email);
+  }
+}
 
-```typescriptreact project="CleanArchExample" file="domain/repositories/IUserRepository.ts"
-...
-```
 
-```typescriptreact project="CleanArchExample" file="application/usecases/CreateUserUseCase.ts"
-...
-```
 
-```typescriptreact project="CleanArchExample" file="infrastructure/repositories/UserRepositoryMongo.ts"
-...
-```
+// Capa de Dominio: Puerto secundario (interfaz del repositorio)
+import { User } from '../entities/User';
 
-```typescriptreact project="CleanArchExample" file="presentation/controllers/UserController.ts"
-...
+export interface IUserRepository {
+  getById(id: string): Promise<User | null>;
+  save(user: User): Promise<void>;
+}
+
+
+
+// Capa de Aplicación: Caso de uso
+import { User } from '../../domain/entities/User';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
+
+export class CreateUserUseCase {
+  constructor(private userRepository: IUserRepository) {}
+
+  async execute(id: string, name: string, email: string): Promise<User> {
+    const user = new User(id, name, email);
+    
+    if (!user.validateEmail()) {
+      throw new Error('Invalid email');
+    }
+
+    await this.userRepository.save(user);
+    return user;
+  }
+}
+
+
+// Capa de Infraestructura: Implementación concreta del repositorio
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
+import { User } from '../../domain/entities/User';
+import { MongoClient } from 'mongodb';
+
+export class UserRepositoryMongo implements IUserRepository {
+  private client: MongoClient;
+
+  constructor(connectionString: string) {
+    this.client = new MongoClient(connectionString);
+  }
+
+  async getById(id: string): Promise<User | null> {
+    await this.client.connect();
+    const db = this.client.db('myapp');
+    const collection = db.collection('users');
+    const result = await collection.findOne({ id });
+    if (result) {
+      return new User(result.id, result.name, result.email);
+    }
+    return null;
+  }
+
+  async save(user: User): Promise<void> {
+    await this.client.connect();
+    const db = this.client.db('myapp');
+    const collection = db.collection('users');
+    await collection.insertOne({
+      id: user.id,
+      name: user.name,
+      email: user.email
+    });
+  }
+}
+
+
+
+// Capa de Presentación: Controlador
+import { CreateUserUseCase } from '../../application/usecases/CreateUserUseCase';
+import { UserRepositoryMongo } from '../../infrastructure/repositories/UserRepositoryMongo';
+
+export class UserController {
+  private createUserUseCase: CreateUserUseCase;
+
+  constructor() {
+    const userRepository = new UserRepositoryMongo('mongodb://localhost:27017');
+    this.createUserUseCase = new CreateUserUseCase(userRepository);
+  }
+
+  async createUser(req: any, res: any) {
+    try {
+      const { id, name, email } = req.body;
+      const user = await this.createUserUseCase.execute(id, name, email);
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+}
 ```
 
 Este ejemplo muestra cómo se pueden aplicar los principios de Clean Architecture, Arquitectura Hexagonal

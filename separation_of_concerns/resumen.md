@@ -1,15 +1,10 @@
-# Proceso de aprendizaje estructurado en varias etapas sobre el concepto de separación de preocupaciones
+# Separación de preocupaciones
 
  (Separation of Concerns) aplicado al desarrollo web con React y TypeScript.
 
+
+
 ### Etapa 1: Introducción a la Separación de Preocupaciones
-
-**Objetivo:** Entender el concepto básico de separación de preocupaciones.
-
-#### 1.1. Conceptos Básicos
-¡Claro! Vamos a desarrollar el **Punto 1: Introducción a la Separación de Preocupaciones** con ejemplos de código y preguntas concretas.
-
-### 1.1. Conceptos Básicos
 
 **Definición:**
 La separación de preocupaciones es una práctica que permite dividir un programa en distintas secciones, cada una encargada de una única tarea o responsabilidad. Esto facilita la mantenibilidad y la comprensión del código.

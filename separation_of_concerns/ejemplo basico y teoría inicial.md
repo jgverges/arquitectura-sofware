@@ -578,12 +578,80 @@ export default UserForm;
 4. **¿Qué ocurriría si se mezclara la lógica de la API directamente en los componentes de presentación?**
    - Respuesta: Se dificultaría la mantenibilidad, ya que los componentes se volverían más complicados y menos reutilizables.
 
-### Ejercicio
+## API?
+La API en el ejemplo proporcionado está bastante desacoplada de la aplicación en varios aspectos, pero siempre hay oportunidades para mejorar el desacoplamiento. Aquí hay un análisis de cómo se puede evaluar y mejorar este desacoplamiento:
 
-**Implementación:**
-- Añade una funcionalidad de búsqueda que permita filtrar usuarios por nombre. Crea un componente `UserSearch` que maneje la entrada del usuario y actualice la lista mostrada.
+### Aspectos Positivos del Desacoplamiento
 
-**Reflexión:**
-- Escribe sobre cómo la separación de preocupaciones facilita la implementación de nuevas funcionalidades en esta aplicación y cómo podrías extenderla aún más.
+1. **Centralización de Llamadas a la API:**
+   - Todas las funciones relacionadas con la API están en el archivo `api.ts`. Esto significa que cualquier cambio en la forma en que se manejan las llamadas a la API solo necesita realizarse en un lugar, en lugar de estar disperso en varios componentes.
 
-Si tienes más preguntas o deseas explorar más conceptos, ¡no dudes en preguntar!
+2. **Interfaz Clara:**
+   - Las funciones en `api.ts` proporcionan una interfaz clara para la aplicación. Los componentes no tienen que preocuparse por cómo se hacen las solicitudes; solo llaman a las funciones y manejan los resultados.
+
+3. **Facilidad para Realizar Cambios:**
+   - Si decides cambiar la API (por ejemplo, cambiar a otra URL o usar una biblioteca diferente para manejar solicitudes), solo necesitarás actualizar `api.ts` sin afectar el resto de la aplicación.
+
+### Oportunidades de Mejora
+
+1. **Gestión de Errores:**
+   - Actualmente, no hay manejo de errores en las llamadas a la API. Se podría mejorar el desacoplamiento implementando un sistema de manejo de errores que no dependa de los componentes. Por ejemplo, podrías crear un `api.ts` que retorne errores específicos o use un manejador de errores global.
+
+2. **Abstracción de la Lógica de Negocio:**
+   - Podrías introducir un **servicio** que encapsule la lógica de negocio relacionada con los usuarios. En lugar de que los componentes hagan llamadas directas a `api.ts`, llamarían a funciones del servicio, que a su vez manejarían la comunicación con la API.
+
+   ```typescript
+   // userService.ts
+   import { fetchUsers, createUser, updateUser, deleteUser } from './api';
+   import { User } from './types';
+
+   export const getUsers = async (): Promise<User[]> => {
+     return fetchUsers();
+   };
+
+   export const addUser = async (user: { name: string; email: string }) => {
+     return createUser(user);
+   };
+
+   // Y así sucesivamente para updateUser y deleteUser
+   ```
+
+3. **Uso de Hooks Personalizados:**
+   - Puedes crear hooks personalizados para encapsular la lógica de la API y el manejo del estado. Esto puede hacer que los componentes sean más limpios y que la lógica de obtención de datos esté desacoplada de la presentación.
+
+   ```typescript
+   // useUsers.ts
+   import { useEffect, useState } from 'react';
+   import { getUsers } from './userService';
+   import { User } from './types';
+
+   const useUsers = () => {
+     const [users, setUsers] = useState<User[]>([]);
+     const [loading, setLoading] = useState<boolean>(true);
+     const [error, setError] = useState<string | null>(null);
+
+     useEffect(() => {
+       const loadUsers = async () => {
+         try {
+           const usersData = await getUsers();
+           setUsers(usersData);
+         } catch (err) {
+           setError('Error loading users');
+         } finally {
+           setLoading(false);
+         }
+       };
+
+       loadUsers();
+     }, []);
+
+     return { users, loading, error };
+   };
+   ```
+
+4. **Pruebas Más Fáciles:**
+   - Desacoplar la lógica de la API mediante servicios o hooks personalizados también facilita las pruebas. Puedes simular las llamadas a la API sin necesidad de interactuar con la red real.
+
+### Conclusión
+
+En resumen, la API está razonablemente desacoplada de la aplicación, pero hay espacio para mejorar el desacoplamiento, la gestión de errores y la limpieza del código. Al implementar servicios, hooks personalizados o manejar errores de manera más robusta, puedes hacer que tu aplicación sea más mantenible y escalable. Si quieres profundizar en alguno de estos aspectos o necesitas ejemplos específicos, ¡házmelo saber!

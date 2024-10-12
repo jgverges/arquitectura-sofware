@@ -1,6 +1,5 @@
-¡Claro! Vamos a profundizar en ejemplos más complejos que ilustren la separación de preocupaciones en una aplicación React utilizando TypeScript. Imaginemos una aplicación de gestión de tareas con funcionalidad de filtrado y edición de tareas.
 
-### Ejemplo Complejo: Aplicación de Gestión de Tareas
+### Ejemplo: Aplicación de Gestión de Tareas
 
 #### Estructura de la Aplicación
 

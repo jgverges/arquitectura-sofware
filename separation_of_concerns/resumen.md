@@ -12,7 +12,7 @@ La separación de preocupaciones es una práctica que permite dividir un program
 **Ejemplo de Separación de Preocupaciones:**
 Supongamos que estamos creando una aplicación sencilla que muestra una lista de tareas. Aquí veremos cómo se puede separar la lógica de presentación de la lógica de negocio.
 
-#### Ejemplo de Código
+## Ejemplo 1
 
 1. **Código sin separación de preocupaciones:**
 
@@ -133,7 +133,7 @@ ocupaciones y explica brevemente cómo lo hace.
 
 ¡Claro! Vamos a profundizar en ejemplos más complejos que ilustren la separación de preocupaciones en una aplicación React utilizando TypeScript. Imaginemos una aplicación de gestión de tareas con funcionalidad de filtrado y edición de tareas.
 
-## Ejemplo Complejo: Aplicación de Gestión de Tareas
+## Ejemplo 2: Aplicación de Gestión de Tareas
 
 #### Estructura de la Aplicación
 
@@ -333,7 +333,7 @@ export interface Task {
 
 Si tienes más preguntas o quieres que profundice en algún aspecto, ¡hazmelo saber!
 
-## Ejemplo con llamadas a API
+## Ejemplo 3 - con llamadas a API
 
 ¡Claro! Vamos a desarrollar un ejemplo más complejo de una aplicación React con TypeScript que incluya el manejo de APIs. Crearemos una aplicación de gestión de usuarios que permite listar, agregar, editar y eliminar usuarios utilizando una API simulada.
 

@@ -1,4 +1,7 @@
 # Gentleman_CleanArch_Practice
+
+https://www.youtube.com/watch?v=UaZgjzWRn8U&list=PL42UNLc8e48TF9l07z_tLGHzmC_d-yfJJ
+
 ```ts
 // EXTERNA -> FRAMEWORK / DRIVER / UI -> Detalles de implementacion
 // MOCKS -> STUBS
